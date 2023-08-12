@@ -1,0 +1,33 @@
+.menu a {
+  color: #fff !important;
+}
+.img-overflow{
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.img-overflow img{
+  transition: .3s all;
+}
+.img-overflow .preview-link{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  width: 40px;
+  height: 40px;
+  line-height: 45px;
+  border-radius: 50%;
+}
+.img-overflow:hover img{
+  scale: 1.1;
+ rotate: 3deg; 
+}
+.img-overflow:hover .preview-link {
+background: #fffffff1;
+opacity: 1;
+}
+.img-overflow a:hover {
+  color: #BA9A48;
+}
