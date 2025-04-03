@@ -1,0 +1,9 @@
+.tab-content row , .tab-content row .justify-content-between{
+    flex-direction: row-reverse !important;
+}
+
+.features .tab-pane h3:after {
+    right: unset;
+    left: 0;
+}
+
