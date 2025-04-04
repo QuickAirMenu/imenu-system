@@ -1,15 +1,15 @@
 .menu a {
   color: #fff !important;
 }
-.img-overflow{
+.img-overflow {
   position: relative;
   overflow: hidden;
   border-radius: 6px;
 }
-.img-overflow img{
-  transition: .3s all;
+.img-overflow img {
+  transition: 0.3s all;
 }
-.img-overflow .preview-link{
+.img-overflow .preview-link {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -20,14 +20,14 @@
   line-height: 45px;
   border-radius: 50%;
 }
-.img-overflow:hover img{
+.img-overflow:hover img {
   scale: 1.1;
- rotate: 3deg; 
+  rotate: 3deg;
 }
 .img-overflow:hover .preview-link {
-background: #fffffff1;
-opacity: 1;
+  background: #fffffff1;
+  opacity: 1;
 }
 .img-overflow a:hover {
-  color: #BA9A48;
+  color: #c72b14;
 }

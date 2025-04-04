@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Slider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Tinify\Tinify;
+use Tinify\Source;
 
 class SliderController extends Controller
 {
@@ -17,18 +19,18 @@ class SliderController extends Controller
     {
         $data['pagename'] = __('dash.slider');
         $data['sliders']  = Slider::all();
-        return view('slider.index',$data);
+        return view('slider.index', $data);
     }
 
     public function create()
     {
-        $data['pagename'] = __('dash.slider').' '.__('dash.add');
-        return view('slider.create',$data);
+        $data['pagename'] = __('dash.slider') . ' ' . __('dash.add');
+        return view('slider.create', $data);
     }
 
     public function store(Request $request)
     {
-        $data =$request->validate([
+        $data = $request->validate([
             'ar_title' => 'required',
             'en_title' => 'required',
             'ar_desc' => 'required',
@@ -37,62 +39,81 @@ class SliderController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image');
-            $imageName = time() . '-' . $request->user_name . '.' . $request->file("image")->extension();
-            $path = $request->file('image')
-                ->move(public_path("images" . DIRECTORY_SEPARATOR . "sliders"), $imageName);
-            $request->image = $imageName;
+            $imageFile = $request->file('image');
+            $imageName = time() . '-' . uniqid() . '.' . $imageFile->extension();
+            $destinationPath = public_path("images/sliders");
+
+            // حفظ الصورة مؤقتًا
+            $imageFile->move($destinationPath, $imageName);
+            $originalPath = $destinationPath . DIRECTORY_SEPARATOR . $imageName;
+
+            // ضغط الصورة باستخدام TinyPNG
+            try {
+                Tinify::setKey(env('TINYPNG_API_KEY'));
+                $source = Source::fromFile($originalPath);
+                $source->toFile($originalPath);
+            } catch (\Tinify\Exception $e) {
+                return back()->with('error', 'Error compressing image: ' . $e->getMessage());
+            }
+
+            $data['image'] = $imageName;
         }
 
-        Slider::create([
-            'ar_title' => $request->ar_title,
-            'en_title' => $request->en_title,
-            'ar_desc' => $request->ar_desc,
-            'en_desc' => $request->en_desc,
-            'image' => $request->image,
+        Slider::create($data);
 
-        ]);
-       toast(__('dash.store-success'), 'success');
+        toast(__('dash.store-success'), 'success');
         return redirect()->route('slider.create');
-
-
     }
 
     public function edit($id)
     {
-        $data['slider'] = Slider::findOrfail($id);
-        $data['pagename'] = __('dash.slider').' '.__('dash.edit');
-        return view('slider.edit',$data);
+        $data['slider'] = Slider::findOrFail($id);
+        $data['pagename'] = __('dash.slider') . ' ' . __('dash.edit');
+        return view('slider.edit', $data);
     }
 
-    public function update(Request $request ,$id)
+    public function update(Request $request, $id)
     {
         $slider = Slider::findOrFail($id);
-        $image = public_path('images' . DIRECTORY_SEPARATOR . 'sliders' . DIRECTORY_SEPARATOR . $slider->image);
 
+        $data = $request->validate([
+            'ar_title' => 'required',
+            'en_title' => 'required',
+            'ar_desc' => 'required',
+            'en_desc' => 'required',
+            'image'   => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        // التحقق مما إذا تم رفع صورة جديدة
         if ($request->hasFile('image')) {
+            $oldImage = public_path("images/sliders/" . $slider->image);
 
-            if (File::exists($image)) {
-                File::delete($image);
+            // حذف الصورة القديمة
+            if (File::exists($oldImage)) {
+                File::delete($oldImage);
             }
 
-            $imagePath = $request->file('image');
-            $imageName = time() . '-' . $request->name . '.' . $request->file("image")->extension();
-            $path = $request->file('image')
-                ->move(public_path("images/sliders"), $imageName);
-            $request->image = $imageName;
-            $slider->image = $imageName;
+            $imageFile = $request->file('image');
+            $imageName = time() . '-' . uniqid() . '.' . $imageFile->extension();
+            $destinationPath = public_path("images/sliders");
+
+            // حفظ الصورة مؤقتًا
+            $imageFile->move($destinationPath, $imageName);
+            $originalPath = $destinationPath . DIRECTORY_SEPARATOR . $imageName;
+
+            // ضغط الصورة باستخدام TinyPNG
+            try {
+                Tinify::setKey(env('TINYPNG_API_KEY'));
+                $source = Source::fromFile($originalPath);
+                $source->toFile($originalPath);
+            } catch (\Tinify\Exception $e) {
+                return back()->with('error', 'Error compressing image: ' . $e->getMessage());
+            }
+
+            $data['image'] = $imageName;
         }
 
-
-        $slider->ar_title = $request->ar_title;
-        $slider->en_title = $request->en_title;
-        $slider->ar_desc = $request->ar_desc;
-        $slider->en_desc = $request->en_desc;
-
-
-
-        $slider->save();
+        $slider->update($data);
 
         toast(__('dash.edit-success'), 'success');
         return redirect()->route('slider.index');
@@ -100,14 +121,16 @@ class SliderController extends Controller
 
     public function destroy($id)
     {
-        $type = Slider::findOrFail($id);
-        $image = public_path('images' . DIRECTORY_SEPARATOR . 'sliders' . DIRECTORY_SEPARATOR . $type->image);
+        $slider = Slider::findOrFail($id);
+        $image = public_path("images/sliders/" . $slider->image);
 
         if (File::exists($image)) {
             File::delete($image);
         }
-        $type->delete();
-       toast(__('dash.delete-success'), 'success');;
+
+        $slider->delete();
+
+        toast(__('dash.delete-success'), 'success');
         return redirect()->route('slider.index');
     }
 }

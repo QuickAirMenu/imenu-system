@@ -1,8 +1,15 @@
 <div class="container" id="sec">
+    
     <div class="row  justify-content-center ">
+        
         <div class="col-md-7 col-12">
+            
+           
             <div class="menu">
-                <div class="row justify-content-center ">
+           <h2 class="text-center mb-4" style="color: var(--color-primary);">
+              @lang('site.main_sections')
+           </h2>
+        <div class="row justify-content-center ">
 
                     @foreach ( $sections as $section )
                         <div class="col-6 px-md-2 px-1">

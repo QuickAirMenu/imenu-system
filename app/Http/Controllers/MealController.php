@@ -6,25 +6,24 @@ use App\Models\Meal;
 use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Tinify\Tinify;
+use Tinify\Source;
 
 class MealController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-
-     public function __construct()
-     {
+    public function __construct()
+    {
         $this->middleware('auth');
-     }
+    }
 
     public function index()
     {
         $data['pagename'] = __('dash.meals');
-
         $data['meals']  = Meal::with('section')->latest()->get();
-
-        return view('meals.index',$data);
+        return view('meals.index', $data);
     }
 
     /**
@@ -33,10 +32,8 @@ class MealController extends Controller
     public function create()
     {
         $data['pagename'] = __('dash.add-meals');
-
         $data['sections'] = Section::whereHas('children')->get();
-
-        return view('meals.create' , $data);
+        return view('meals.create', $data);
     }
 
     /**
@@ -44,41 +41,41 @@ class MealController extends Controller
      */
     public function store(Request $request)
     {
-        $data =$request->validate([
+        $data = $request->validate([
             'ar_name' => 'required',
             'en_name' => 'required',
-            'price' => 'required|int',
-            'section_id' => 'required|int',
-            'children_id' => 'required|int',
-            'status'     =>  'required',
-            'image'   => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'price' => 'required|integer',
+            'section_id' => 'required|integer',
+            'children_id' => 'required|integer',
+            'status' => 'required',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image');
-            $imageName = time() . '-' . $request->user . '.' . $request->file("image")->extension();
-            $path = $request->file('image')
-                ->move(public_path("images" . DIRECTORY_SEPARATOR . "meals"), $imageName);
-            $request->image = $imageName;
+            $imageFile = $request->file('image');
+            $imageName = time() . '-' . uniqid() . '.' . $imageFile->extension();
+            $destinationPath = public_path("images/meals");
+
+            // حفظ الصورة مؤقتًا
+            $imageFile->move($destinationPath, $imageName);
+            $originalPath = $destinationPath . DIRECTORY_SEPARATOR . $imageName;
+
+            // ضغط الصورة باستخدام TinyPNG
+            try {
+                Tinify::setKey(env('TINYPNG_API_KEY'));
+                $source = Source::fromFile($originalPath);
+                $source->toFile($originalPath);
+            } catch (\Tinify\Exception $e) {
+                return back()->with('error', 'Error compressing image: ' . $e->getMessage());
+            }
+
+            $data['image'] = $imageName;
         }
 
-        Meal::create([
-            'ar_name' => $request->ar_name,
-            'en_name' => $request->en_name,
-            'ar_components' => $request->ar_components ?? null,
-            'en_components' => $request->en_components ?? null,
-            'price' => $request->price,
-            'image' => $request->image,
-            'status' => $request->status,
-            'section_id' => $request->section_id,
-            'children_id' => $request->children_id,
+        Meal::create($data);
 
-        ]);
-
-        toast( __('dash.store-success') , 'success');
+        toast(__('dash.store-success'), 'success');
         return redirect()->route('meal.index');
-
-
     }
 
     /**
@@ -86,10 +83,10 @@ class MealController extends Controller
      */
     public function show($id)
     {
-        $data['meal'] = Meal::findOrfail($id);
+        $data['meal'] = Meal::findOrFail($id);
         $data['sections'] = Section::all();
-        $data['pagename'] = __('dash.edit').' '.__('dash.meals');
-        return view('meals.edit',$data);
+        $data['pagename'] = __('dash.edit') . ' ' . __('dash.meals');
+        return view('meals.edit', $data);
     }
 
     /**
@@ -97,11 +94,11 @@ class MealController extends Controller
      */
     public function edit(string $id)
     {
-        $data['meal'] = Meal::findOrfail($id);
-        $data['meal'] -> load(['section','chsection']);
+        $data['meal'] = Meal::findOrFail($id);
+        $data['meal']->load(['section', 'chsection']);
         $data['sections'] = Section::whereHas('children')->get();
-        $data['pagename'] =  __('dash.edit').' '.__('dash.meals');
-        return view('meals.edit',$data);
+        $data['pagename'] = __('dash.edit') . ' ' . __('dash.meals');
+        return view('meals.edit', $data);
     }
 
     /**
@@ -110,34 +107,49 @@ class MealController extends Controller
     public function update(Request $request, string $id)
     {
         $meal = Meal::findOrFail($id);
-        $image = public_path('images' . DIRECTORY_SEPARATOR . 'meals' . DIRECTORY_SEPARATOR . $meal->image);
 
+        $data = $request->validate([
+            'ar_name' => 'required',
+            'en_name' => 'required',
+            'price' => 'required|integer',
+            'section_id' => 'required|integer',
+            'children_id' => 'required|integer',
+            'status' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        // التحقق مما إذا تم رفع صورة جديدة
         if ($request->hasFile('image')) {
+            $oldImage = public_path("images/meals/" . $meal->image);
 
-            if (File::exists($image)) {
-                File::delete($image);
+            // حذف الصورة القديمة
+            if (File::exists($oldImage)) {
+                File::delete($oldImage);
             }
 
-            $imagePath = $request->file('image');
-            $imageName = time() . '-' . $request->name . '.' . $request->file("image")->extension();
-            $path = $request->file('image')
-                ->move(public_path("images/meals"), $imageName);
-            $request->image = $imageName;
-            $meal->image = $imageName;
+            $imageFile = $request->file('image');
+            $imageName = time() . '-' . uniqid() . '.' . $imageFile->extension();
+            $destinationPath = public_path("images/meals");
+
+            // حفظ الصورة مؤقتًا
+            $imageFile->move($destinationPath, $imageName);
+            $originalPath = $destinationPath . DIRECTORY_SEPARATOR . $imageName;
+
+            // ضغط الصورة باستخدام TinyPNG
+            try {
+                Tinify::setKey(env('TINYPNG_API_KEY'));
+                $source = Source::fromFile($originalPath);
+                $source->toFile($originalPath);
+            } catch (\Tinify\Exception $e) {
+                return back()->with('error', 'Error compressing image: ' . $e->getMessage());
+            }
+
+            $data['image'] = $imageName;
         }
 
-        $meal->ar_name = $request->ar_name;
-        $meal->en_name = $request->en_name;
-        $meal->ar_components = $request->ar_components;
-        $meal->en_components = $request->en_components;
-        $meal->price = $request->price;
-        $meal->section_id = $request->section_id;
-        $meal->children_id  = $request->children_id;
-        $meal->status = $request->status;
+        $meal->update($data);
 
-        $meal->save();
-
-        toast( __('dash.edit-success') , 'success');
+        toast(__('dash.edit-success'), 'success');
         return redirect()->route('meal.index');
     }
 
@@ -147,13 +159,14 @@ class MealController extends Controller
     public function destroy(string $id)
     {
         $type = Meal::findOrFail($id);
-        $image = public_path('images' . DIRECTORY_SEPARATOR . 'meals' . DIRECTORY_SEPARATOR . $type->image);
+        $image = public_path('images/meals/' . $type->image);
 
         if (File::exists($image)) {
             File::delete($image);
         }
+
         $type->delete();
-        toast( __('dash.delete-success') , 'success');
+        toast(__('dash.delete-success'), 'success');
         return redirect()->route('meal.index');
     }
 }

@@ -10,8 +10,8 @@
     <meta content="" name="keywords">
 
     <!-- Favicons -->
-    <link href="{{ asset('front/assets/img/alrayah_logo.svg') }}" rel="icon">
-    <link href="{{ asset('front/assets/img/alrayah_logo.svg') }}" rel="apple-touch-icon">
+    <link href="{{ asset('images/settings/' . $option->logo) }}" rel="icon">
+    <link href="{{ asset('images/settings/' . $option->logo) }}" rel="apple-touch-icon">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,6 +38,14 @@
 
      <link href="{{ asset('front/assets/css/eng.css') }}" rel="stylesheet">
      @endif
+     
+     <style>
+                 :root {
+            --color-default: {{$option->default_color}};
+            --color-primary: {{$option->primary_color}};
+            --color-secondary: {{$option->scndry_color}};
+        }
+     </style>
 </head>
 
 <body>
@@ -65,20 +73,30 @@
 
                 <div class="box-hero-top text-center" style="direction:ltr">
                     <div class="d-flex align-items-center justify-content-center">
-                        @if($option->social_status == 'active')<div class="social-links d-flex justify-content-center">
-                            <a href="{{ $option->twitter }}" class="d-flex align-items-center justify-content-center"><i
-                                    class="bi bi-twitter"></i></a>
+                   @if($option->social_status == 'active')
+    <div class="social-links d-flex justify-content-center">
+        @if(!empty($option->twitter))
+            <a href="{{ $option->twitter }}" class="d-flex align-items-center justify-content-center"><i class="bi bi-twitter"></i></a>
+        @endif
 
-                            <a href="{{ $option->facebook }}" class="d-flex align-items-center justify-content-center"><i
-                                    class="bi bi-facebook"></i></a>
+        @if(!empty($option->snapchat))
+            <a href="{{ $option->snapchat }}" class="d-flex align-items-center justify-content-center"><i class="fab fa-snapchat"></i></a>
+        @endif
 
-                            <a href="{{ $option->instagram }}" class="d-flex align-items-center justify-content-center"><i
-                                    class="bi bi-instagram"></i></a>
+        @if(!empty($option->facebook))
+            <a href="{{ $option->facebook }}" class="d-flex align-items-center justify-content-center"><i class="bi bi-facebook"></i></a>
+        @endif
 
-                            <a href="{{ $option->tiktok }}" class="d-flex align-items-center justify-content-center"><i
-                                    class="bi bi-tiktok"></i></a>
-                        </div>@endif
-                        <img src="{{ asset('images/settings/'.$option->logo) }}" height="120px" alt="">
+        @if(!empty($option->instagram))
+            <a href="{{ $option->instagram }}" class="d-flex align-items-center justify-content-center"><i class="bi bi-instagram"></i></a>
+        @endif
+
+        @if(!empty($option->tiktok))
+            <a href="{{ $option->tiktok }}" class="d-flex align-items-center justify-content-center"><i class="bi bi-tiktok"></i></a>
+        @endif
+    </div>
+@endif
+                        <img src="{{ asset('images/settings/'.$option->logo) }}" height="100px" alt="">
                     </div>
                     <!--  -->
                 </div>
@@ -97,25 +115,37 @@
     @endif
 
     <main id="main" class="mt-3" style="margin-top: 6rem !important;">
+        
+
+
 
         @if(Request::is('ar') or Request::is('en'))
         <x-section-component />
         @endif
+       
 
         <!-- ======= Features Section ======= -->
 
-        <section id="products" class="features pt-2">
-            <div class="container" data-aos="fade-up">
-                <div class="row justify-content-center">
-                    <div class="col-md-7">
-                      @yield('content')
-                    </div>
-                </div>
+    <section id="products" class="features pt-2">
+      <div class="container" data-aos="fade-up">
+        
+       
+   <div class="row justify-content-center">
+            <div class="col-md-12">
+                @yield('content') 
+                
             </div>
-        </section>
+        </div>
+        
+      </div>
+    </section>
 
 
-        <x-contact-component />
+
+        @if(Request::is('ar') || Request::is('en'))
+          <x-contact-component />
+        @endif
+
 
 
         <x-footer-component />
@@ -127,7 +157,7 @@
             <div class="preloader-inner position-relative">
                 <div class="preloader-circle"></div>
                 <div class="preloader-img pere-text">
-                    <img src="{{ asset('front/assets/img/alrayah_logo.svg') }}" alt="logo " />
+                    <img src="{{ asset('images/settings/'.$option->preloading) }}" alt="logo " />
                 </div>
             </div>
         </div>

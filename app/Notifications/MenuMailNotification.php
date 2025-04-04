@@ -2,60 +2,50 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
 class MenuMailNotification extends Notification
 {
-    use Queueable;
-
-    /**
-     * Create a new notification instance.
-     */
     public $body;
     public $title;
-    public function __construct($body,$title)
+    public $appName;
+    public $siteUrl;
+    public $supportMessage;
+
+    /**
+     * استقبال المحتوى والعنوان عند إنشاء الإشعار
+     */
+    public function __construct($body, $title)
     {
         $this->body = $body;
         $this->title = $title;
+
+        // جلب القيم من config/app.php أو من .env
+        $this->appName = config('app.name', env('APP_NAME', 'One Sip'));
+        $this->siteUrl = config('app.url', env('APP_URL', 'https://onesip.sa'));
+
+        // رسالة عامة
+        $this->supportMessage = __("شكراً لاختيار خدماتنا. نسعى دائماً لتقديم أفضل تجربة لك!");
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
+     * تحديد القنوات المستخدمة (البريد الإلكتروني)
      */
-    public function via(object $notifiable): array
+    public function via($notifiable)
     {
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
+  
+    public function toMail($notifiable)
     {
         return (new MailMessage)
             ->subject($this->title)
-            ->greeting('اهلا بك!')
-            ->line($this->body)
-            ->action('عرض الموقع', 'https://alrayahhotel.com')
-            ->line('شكرا لك  لاستخدام موقع وفندق الراية');
-
-
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
-    {
-        return [
-            //
-        ];
+            ->greeting(new HtmlString(__('مرحباً بك في ') . $this->appName)) // دعم تعدد اللغات
+            ->line(new HtmlString('<p style="font-size:16px; color:#333;">' . $this->body . '</p>'))
+            ->line(new HtmlString('<p style="font-size:14px; color:#777;">' . $this->supportMessage . '</p>'))
+            ->action(__('تصفح المنيو'), $this->siteUrl); // دعم تعدد اللغات
     }
 }

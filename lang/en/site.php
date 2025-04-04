@@ -8,6 +8,6 @@ return [
     'phone' => 'Phone',
     'email' => 'Email',
     'homepage' => 'Home Page',
-    'components' => 'Components',
-
+    'components' => 'Calories',
+ 'main_sections' => 'Main Sections',
 ];

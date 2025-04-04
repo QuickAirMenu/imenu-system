@@ -35,6 +35,34 @@
                                     <label for="logo" class="form-label">@lang('logo')</label>
                                     <input type="file" name="logo" id="logo" class="form-control">
                                     {{ $setting[0]->logo }}
+                                </div>     
+                                
+                                
+                                <div class="mb-3">
+                                    <label for="preloading" class="form-label">@lang('preloading')</label>
+                                    <input type="file" name="preloading" id="preloading" class="form-control">
+                                    {{ $setting[0]->preloading }}
+                                </div>                                
+                                
+                                <div class="mb-3">
+                                    <label for="icon" class="form-label">@lang('Icon')</label>
+                                    <input type="file" name="icon" id="icon" class="form-control">
+                                    {{ $setting[0]->icon }}
+                                </div>       
+                                
+                                <div class="mb-3">
+                                    <label for="primary_color" class="form-label">@lang('primary_color')</label>
+                                    <input type="text" name="primary_color" id="primary_color" class="form-control"  value="{{$setting[0]->primary_color}}">
+                                </div>
+                            
+                                <div class="mb-3">
+                                    <label for="default_color" class="form-label">@lang('default_color')</label>
+                                    <input type="text" name="default_color" id="default_color" class="form-control" value="{{$setting[0]->default_color}}">
+                                </div>
+                            
+                                <div class="mb-3">
+                                    <label for="scndry_color" class="form-label">@lang('scndry_color')</label>
+                                    <input type="text" name="scndry_color" id="scndry_color" class="form-control" value="{{$setting[0]->scndry_color}}">
                                 </div>
                             </div> <!-- end col -->
                         </div>
@@ -142,6 +170,8 @@
 
 @section('scripts')
 
+
+
 <script src="{{ asset('dashboard/assets/libs/selectize/js/standalone/selectize.min.js') }}"></script>
 <script src="{{ asset('dashboard/assets/libs/mohithg-switchery/switchery.min.js') }}"></script>
 <script src="{{ asset('dashboard/assets/libs/multiselect/js/jquery.multi-select.js') }}"></script>
@@ -151,5 +181,13 @@
 <script src="{{ asset('dashboard/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js') }}"></script>
 <script src="{{ asset('dashboard/assets/libs/bootstrap-maxlength/bootstrap-maxlength.min.js') }}"></script>
 <script src="{{ asset('dashboard/assets/js/pages/form-advanced.init.js') }}"></script>
+
+
+
+
+
+
+
+
 
 @endsection
